@@ -322,7 +322,7 @@ export default function ApplyModal({ job, onClose }: ApplyModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-lg flex justify-center p-4 md:p-8" data-lenis-prevent>
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-lg flex items-center justify-center p-4 md:p-8" data-lenis-prevent>
       <div className="relative w-full max-w-2xl bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.12)] flex flex-col h-fit max-h-[90vh]" data-lenis-prevent>
         {/* Glow ambient background effects */}
         <div className="absolute top-[-20%] right-[-20%] w-[60%] h-[60%] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none" />
