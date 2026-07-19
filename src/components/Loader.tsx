@@ -11,9 +11,11 @@ export default function Loader({ onComplete }: { onComplete: () => void }) {
     // Check if user has already seen the loader in this session
     const hasSeenLoader = sessionStorage.getItem("openstudios-loader-seen");
     if (hasSeenLoader === "true") {
-      setVisible(false);
-      onComplete();
-      return;
+      const timer = setTimeout(() => {
+        setVisible(false);
+        onComplete();
+      }, 0);
+      return () => clearTimeout(timer);
     }
 
     // Sequence timing
@@ -78,7 +80,7 @@ export default function Loader({ onComplete }: { onComplete: () => void }) {
                 stroke="#2563EB"
                 strokeWidth="2"
                 strokeLinecap="round"
-                initial={{ strokeDasharray: "251", strokeDashoffset: "251" }}
+                initial={{ strokeDasharray: 251, strokeDashoffset: 251 }}
                 animate={{ strokeDashoffset: 0 }}
                 transition={{
                   duration: 1.4,

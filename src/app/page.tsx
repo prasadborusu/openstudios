@@ -21,6 +21,7 @@ export default function Home() {
   // Keep scroll position synced to top on every section change
   useEffect(() => {
     const scrollToTop = () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const lenis = (window as any).lenis;
       if (lenis) {
         lenis.scrollTo(0, { immediate: true });

@@ -16,6 +16,7 @@ export default function Hero({ onNavigate }: HeroProps) {
     } else {
       const target = document.querySelector(id);
       if (target) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const lenis = (window as any).lenis;
         if (lenis) {
           lenis.scrollTo(target);

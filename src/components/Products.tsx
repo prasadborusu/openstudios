@@ -10,35 +10,55 @@ export default function Products() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    setError("");
+
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) return;
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(normalizedEmail)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
 
     setLoading(true);
-    setError("");
 
     try {
       const { error: dbError } = await supabase
         .from("product_subscribers")
-        .insert([{ email }]);
+        .insert([{ email: normalizedEmail }]);
 
       if (dbError) {
-        console.warn("Supabase Error saving subscriber:", dbError.message);
-        // Fallback for development if the table hasn't been created in the Supabase Dashboard yet
-        if (process.env.NODE_ENV === "development") {
+        console.warn("Supabase Error saving subscriber:", dbError.message, dbError.code);
+        
+        if (dbError.code === "23505") {
+          setSuccessMessage("✓ You're already on our notification list.");
           setSubmitted(true);
           setEmail("");
         } else {
-          setError("Failed to subscribe. Please try again later.");
+          // Fallback for development if the table hasn't been created in the Supabase Dashboard yet
+          if (process.env.NODE_ENV === "development") {
+            setSuccessMessage("✓ Thank you! You've been added to our notification list.");
+            setSubmitted(true);
+            setEmail("");
+          } else {
+            setError("Failed to subscribe. Please try again later.");
+          }
         }
       } else {
+        setSuccessMessage("✓ Thank you! You've been added to our notification list.");
         setSubmitted(true);
         setEmail("");
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Subscription exception:", err);
       if (process.env.NODE_ENV === "development") {
+        setSuccessMessage("✓ Thank you! You've been added to our notification list.");
         setSubmitted(true);
         setEmail("");
       } else {
@@ -119,7 +139,7 @@ export default function Products() {
               animate={{ opacity: 1, scale: 1 }}
               className="px-6 py-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-sm font-inter"
             >
-              ✓ Thank you! You've been added to our notification list.
+              {successMessage || "✓ Thank you! You've been added to our notification list."}
             </motion.div>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 w-full">

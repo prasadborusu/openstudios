@@ -6,7 +6,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 export async function POST(request: Request) {
-  let file: any = null;
+  let file: FormDataEntryValue | null = null;
   
   try {
     const formData = await request.formData();
@@ -35,8 +35,9 @@ export async function POST(request: Request) {
     const downloadUrl = rawUrl.replace("https://tmpfiles.org/", "https://tmpfiles.org/dl/");
 
     return NextResponse.json({ url: downloadUrl });
-  } catch (error: any) {
-    console.error("Backend Upload Error, attempting file.io fallback:", error);
+  } catch (error) {
+    const err = error as Error;
+    console.error("Backend Upload Error, attempting file.io fallback:", err);
     
     // Fallback to file.io if tmpfiles has an issue (utilizing already parsed file buffer)
     try {
@@ -60,6 +61,6 @@ export async function POST(request: Request) {
       console.error("Fallback Upload Error:", fallbackErr);
     }
 
-    return NextResponse.json({ error: error.message || "Upload failed" }, { status: 500 });
+    return NextResponse.json({ error: err.message || "Upload failed" }, { status: 500 });
   }
 }

@@ -63,11 +63,11 @@ export default function Vision() {
                 Core Philosophy
               </p>
               <p className="font-inter text-slate-600 text-sm md:text-base leading-relaxed mb-6 group-hover:text-slate-700 transition-colors duration-300">
-                Great ideas deserve the courage to become real. Technology should be a tool that empowers, solves real-world challenges, and elevates human experiences. We don't build for the sake of novelty; we build for utility, beauty, and lasting impact.
+                {"Great ideas deserve the courage to become real. Technology should be a tool that empowers, solves real-world challenges, and elevates human experiences. We don't build for the sake of novelty; we build for utility, beauty, and lasting impact."}
               </p>
             </div>
             <p className="font-inter text-slate-500 text-xs italic border-t border-slate-200/60 pt-4 mt-4">
-              "Great ideas deserve the courage to become real."
+              {'"Great ideas deserve the courage to become real."'}
             </p>
           </motion.div>
 
@@ -91,7 +91,7 @@ export default function Vision() {
               </p>
             </div>
             <p className="font-inter text-slate-500 text-xs italic border-t border-slate-200/60 pt-4 mt-4">
-              "Technology designed to solve meaningful problems."
+              {'"Technology designed to solve meaningful problems."'}
             </p>
           </motion.div>
 

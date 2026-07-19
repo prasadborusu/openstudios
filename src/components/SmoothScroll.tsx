@@ -36,12 +36,13 @@ export default function SmoothScroll({
 
     animationFrameId = requestAnimationFrame(raf);
 
-    // Make lenis globally accessible for other animations (like scroll triggers)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).lenis = lenis;
 
     return () => {
       cancelAnimationFrame(animationFrameId);
       lenis.destroy();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (window as any).lenis;
     };
   }, []);

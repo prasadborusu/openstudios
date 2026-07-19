@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Upload, Check, Loader2, Sparkles, FileText } from "lucide-react";
+import { X, Upload, Check, Loader2, FileText } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import emailjs from "@emailjs/browser";
 
 interface Job {
   id: string;
@@ -14,6 +15,25 @@ interface Job {
 interface ApplyModalProps {
   job: Job | null;
   onClose: () => void;
+}
+
+// Helper functions defined outside of the component to prevent impure warnings during render
+function generateApplyCaptcha() {
+  const num1 = Math.floor(Math.random() * 9) + 1;
+  const num2 = Math.floor(Math.random() * 9) + 1;
+  return {
+    value: `What is ${num1} + ${num2}?`,
+    answer: num1 + num2
+  };
+}
+
+function generateApplicationId(): string {
+  return `OS-2026-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+}
+
+function generateFileName(generatedId: string, originalName: string): string {
+  const fileExt = originalName.split('.').pop() || "pdf";
+  return `${generatedId}-${Date.now()}.${fileExt}`;
 }
 
 export default function ApplyModal({ job, onClose }: ApplyModalProps) {
@@ -45,23 +65,16 @@ export default function ApplyModal({ job, onClose }: ApplyModalProps) {
   const [formError, setFormError] = useState("");
 
   // Captcha state
-  const [captchaValue, setCaptchaValue] = useState("");
-  const [captchaAnswer, setCaptchaAnswer] = useState(0);
+  const [captcha] = useState(() => generateApplyCaptcha());
   const [captchaInput, setCaptchaInput] = useState("");
 
   useEffect(() => {
-    // Generate simple CAPTCHA to prevent spam without external script loads
-    const num1 = Math.floor(Math.random() * 9) + 1;
-    const num2 = Math.floor(Math.random() * 9) + 1;
-    setCaptchaValue(`What is ${num1} + ${num2}?`);
-    setCaptchaAnswer(num1 + num2);
-
     // Disable background scroll when modal is open
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "auto";
     };
-  }, [job]);
+  }, []);
 
   // Handle File Input
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,6 +113,32 @@ export default function ApplyModal({ job, onClose }: ApplyModalProps) {
 
   };
 
+  // Helper to send auto-responder email via EmailJS
+  const sendEmailjsAutoResponder = (generatedId: string) => {
+    const emailParams = {
+      to_name: fullName,
+      to_email: email,
+      job_title: job?.title || "Mobile App Development Intern",
+      application_id: generatedId,
+    };
+
+    const serviceId = process.env.NEXT_PUBLIC_EMAILJS_RECRUITMENT_SERVICE_ID || 
+                      process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || 
+                      "service_default";
+    const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_RECRUITMENT_ID || 
+                       "template_recruitment";
+    const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || 
+                      "user_publickey";
+
+    emailjs.send(serviceId, templateId, emailParams, publicKey)
+      .then(() => {
+        console.log("Recruitment auto-responder email sent successfully.");
+      })
+      .catch((emailErr) => {
+        console.warn("EmailJS Auto-Responder Error:", emailErr?.text || emailErr);
+      });
+  };
+
   // Submit Handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,7 +150,7 @@ export default function ApplyModal({ job, onClose }: ApplyModalProps) {
     }
 
     // Validate spam Captcha
-    if (parseInt(captchaInput.trim()) !== captchaAnswer) {
+    if (parseInt(captchaInput.trim()) !== captcha.answer) {
       setFormError("Incorrect CAPTCHA answer. Please try again.");
       return;
     }
@@ -119,18 +158,17 @@ export default function ApplyModal({ job, onClose }: ApplyModalProps) {
     setLoading(true);
 
     // Generate unique application ID
-    const generatedId = `OS-2026-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    const generatedId = generateApplicationId();
 
     // Upload resume
     let resumeUrl = "";
 
     if (resumeFile) {
       try {
-        const fileExt = resumeFile.name.split('.').pop();
-        const fileName = `${generatedId}-${Date.now()}.${fileExt}`;
+        const fileName = generateFileName(generatedId, resumeFile.name);
 
         // Attempt upload to Supabase storage 'resumes' bucket
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from("resumes")
           .upload(fileName, resumeFile, {
             cacheControl: "3600",
@@ -196,14 +234,21 @@ export default function ApplyModal({ job, onClose }: ApplyModalProps) {
       setAppId(generatedId);
       setSuccess(true);
       
+      // Send auto-responder email to applicant
+      sendEmailjsAutoResponder(generatedId);
+      
       // Trigger canvas particles
       setTimeout(initParticles, 100);
-    } catch (err: any) {
-      console.warn("Supabase Submission Error:", err?.message || err);
+    } catch (err) {
+      console.warn("Supabase Submission Error:", err);
       // Fallback behavior for local development if database/credentials aren't fully configured
       if (process.env.NODE_ENV === "development") {
         setAppId(`${generatedId} (DEV-MODE)`);
         setSuccess(true);
+        
+        // Send auto-responder email even in dev fallback mode to allow local testing
+        sendEmailjsAutoResponder(generatedId);
+        
         setTimeout(initParticles, 100);
       } else {
         setFormError("Failed to submit application. Please try again later.");
@@ -220,8 +265,8 @@ export default function ApplyModal({ job, onClose }: ApplyModalProps) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let width = (canvas.width = canvas.parentElement?.clientWidth || 600);
-    let height = (canvas.height = canvas.parentElement?.clientHeight || 400);
+    const width = (canvas.width = canvas.parentElement?.clientWidth || 600);
+    const height = (canvas.height = canvas.parentElement?.clientHeight || 400);
 
     const particles: Array<{
       x: number;
@@ -560,7 +605,7 @@ export default function ApplyModal({ job, onClose }: ApplyModalProps) {
                     </label>
                     <div className="flex items-center gap-4">
                       <span className="font-mono text-xs text-blue-600 bg-blue-50 border border-blue-200 px-3 py-2 rounded-lg">
-                        {captchaValue}
+                        {captcha.value}
                       </span>
                       <input
                         type="text"
@@ -660,6 +705,7 @@ export default function ApplyModal({ job, onClose }: ApplyModalProps) {
                       onClick={() => {
                         onClose();
                         const target = document.querySelector("#about");
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         if (target) (window as any).lenis?.scrollTo(target);
                       }}
                       className="px-6 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-xs font-semibold uppercase tracking-[0.1em] text-white transition-all cursor-pointer shadow-[0_4px_15px_rgba(37,99,235,0.15)]"

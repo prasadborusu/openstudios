@@ -45,6 +45,7 @@ export default function Navbar({ activeSection = "home", onSectionChange }: Navb
     } else {
       const targetElement = document.querySelector(href);
       if (targetElement) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const lenis = (window as any).lenis;
         if (lenis) {
           lenis.scrollTo(targetElement);

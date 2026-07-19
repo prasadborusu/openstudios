@@ -181,7 +181,7 @@ export default function InteractiveBackground() {
       }
 
       // 2. Draw large circular outlines with slow rotation / orbit
-      circles.forEach((circle, idx) => {
+      circles.forEach((circle) => {
         const offsetAngle = time * circle.speed;
         ctx.beginPath();
         ctx.arc(

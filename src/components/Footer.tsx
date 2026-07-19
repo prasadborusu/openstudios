@@ -16,6 +16,7 @@ export default function Footer({ activeSection = "home", onSectionChange }: Foot
     type: "privacy",
   });
   const handleScrollToTop = () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const lenis = (window as any).lenis;
     if (lenis) {
       lenis.scrollTo(0);
@@ -32,6 +33,7 @@ export default function Footer({ activeSection = "home", onSectionChange }: Foot
     } else {
       const target = document.querySelector(id);
       if (target) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const lenis = (window as any).lenis;
         if (lenis) {
           lenis.scrollTo(target);

@@ -1,9 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Check, Loader2 } from "lucide-react";
 import emailjs from "@emailjs/browser";
+
+// Helper to generate CAPTCHA properties without triggering impurity inside component render
+function generateContactCaptcha() {
+  const num1 = Math.floor(Math.random() * 8) + 2;
+  const num2 = Math.floor(Math.random() * 8) + 2;
+  return {
+    text: `Security Check: ${num1} + ${num2} = ?`,
+    ans: num1 + num2
+  };
+}
 
 export default function Contact() {
   const [name, setName] = useState("");
@@ -18,16 +28,8 @@ export default function Contact() {
   const [errorMsg, setErrorMsg] = useState("");
 
   // Captcha states
-  const [captchaText, setCaptchaText] = useState("");
-  const [captchaAns, setCaptchaAns] = useState(0);
+  const [captcha, setCaptcha] = useState(() => generateContactCaptcha());
   const [captchaInput, setCaptchaInput] = useState("");
-
-  useEffect(() => {
-    const num1 = Math.floor(Math.random() * 8) + 2;
-    const num2 = Math.floor(Math.random() * 8) + 2;
-    setCaptchaText(`Security Check: ${num1} + ${num2} = ?`);
-    setCaptchaAns(num1 + num2);
-  }, [success]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +40,7 @@ export default function Contact() {
       return;
     }
 
-    if (parseInt(captchaInput.trim()) !== captchaAns) {
+    if (parseInt(captchaInput.trim()) !== captcha.ans) {
       setErrorMsg("Incorrect CAPTCHA answer. Please try again.");
       return;
     }
@@ -60,8 +62,8 @@ export default function Contact() {
     try {
       await emailjs.send(serviceId, templateId, emailParams, publicKey);
       setSuccess(true);
-    } catch (err: any) {
-      console.warn("EmailJS Error:", err?.text || err);
+    } catch (err) {
+      console.warn("EmailJS Error:", err);
       // Gracefully succeed in dev mode to allow UI verification
       if (process.env.NODE_ENV === "development") {
         setSuccess(true);
@@ -232,7 +234,7 @@ export default function Contact() {
                       {/* Captcha Math Solver */}
                       <div className="flex items-center gap-4 bg-slate-50 border border-slate-200 p-4 rounded-xl max-w-sm">
                         <span className="font-mono text-xs text-blue-600 whitespace-nowrap">
-                          {captchaText}
+                          {captcha.text}
                         </span>
                         <input
                           type="text"
@@ -288,6 +290,7 @@ export default function Contact() {
                         setSubject("");
                         setMessage("");
                         setCaptchaInput("");
+                        setCaptcha(generateContactCaptcha());
                         setSuccess(false);
                       }}
                       className="px-6 py-2.5 rounded-full bg-slate-100 border border-slate-200 hover:border-slate-350 text-xs font-semibold uppercase tracking-[0.1em] text-slate-700 hover:bg-slate-200/80 transition-all cursor-pointer"
