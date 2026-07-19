@@ -329,14 +329,12 @@ export default function ApplyModal({ job, onClose }: ApplyModalProps) {
         <div className="absolute bottom-[-20%] left-[-20%] w-[60%] h-[60%] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none" />
         
         {/* Close Button */}
-        {!success && (
-          <button
-            onClick={onClose}
-            className="absolute top-6 right-6 p-2 rounded-full bg-slate-100 border border-slate-200 hover:border-slate-350 hover:bg-slate-200/80 text-slate-500 hover:text-slate-900 transition-all cursor-pointer z-10"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        )}
+        <button
+          onClick={onClose}
+          className="absolute top-6 right-6 p-2 rounded-full bg-slate-100 border border-slate-200 hover:border-slate-350 hover:bg-slate-200/80 text-slate-500 hover:text-slate-900 transition-all cursor-pointer z-10"
+        >
+          <X className="w-5 h-5" />
+        </button>
  
         {/* Modal Body */}
         <div className="p-8 md:p-12 overflow-y-auto flex-1" data-lenis-prevent>
